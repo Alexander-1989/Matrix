@@ -1,19 +1,19 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace WindowsFormsApp4
+namespace Matrix
 {
     static class NativeMethods
     {
-        static int mouseCount = 0;
+        static private int count = 0;
 
         [DllImport("user32.dll", EntryPoint = "ShowCursor")]
         static extern int _showCursor(bool show);
 
         public static void ShowCursor(bool show)
         {
-            if ((!show && mouseCount >= 0) || (show && mouseCount < 0))
+            if ((!show && count >= 0) || (show && count < 0))
             {
-                mouseCount = _showCursor(show);
+                count = _showCursor(show);
             }
         }
     }

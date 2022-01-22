@@ -1,4 +1,4 @@
-﻿namespace WindowsFormsApp4
+﻿namespace Matrix
 {
     class MChar
     {
@@ -19,18 +19,18 @@
 
         public void Tick()
         {
-            if (_delay > 0) _delay -= 1;
-            else if (_alpha > 0) _alpha -= 3;
+            if (_delay > 0)
+            {
+                _delay -= 1;
+            }
+            else if (_alpha > 0)
+            {
+                _alpha -= 3;
+            }
         }
 
-        public int GetAlpha()
-        {
-            return (_delay <= 0 && _alpha > 0) ? _alpha : 0;
-        }
+        public int GetAlpha() => _delay <= 0 && _alpha > 0 ? _alpha : 0;
 
-        public bool IsUsed()
-        {
-            return _alpha <= 0;
-        }
+        public bool WasUsed() => _alpha <= 0;
     }
 }

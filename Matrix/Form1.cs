@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
 
-namespace WindowsFormsApp4
+namespace Matrix
 {
     public partial class Form1 : Form
     {
@@ -18,8 +18,8 @@ namespace WindowsFormsApp4
             pictureBox1. MouseDown += pictureBox1_MouseDown;
             pictureBox1.MouseMove += pictureBox1_MouseMove;
             pictureBox1.MouseDoubleClick += PictureBox1_MouseDoubleClick;
-            Font = new Font(Font.FontFamily, charSize);
-            ChangeSize();
+            Font = new Font("Bookman Old Style", charSize);
+            _Resize();
             timer1.Start();
         }
 
@@ -28,10 +28,10 @@ namespace WindowsFormsApp4
         Graphics graphics = null;
         Random rnd = new Random();
         List<MChar[]> allLines = new List<MChar[]>(400);
-        bool isFullSize = true;
+        bool isFullSize = false;
         int charSize = 12;
         int delay = 4;
-        char[] katakana =
+        readonly char[] katakana =
         {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             '゠', 'ァ', 'ア', 'ィ', 'イ', 'ゥ', 'ウ', 'ェ', 'エ',
@@ -69,7 +69,7 @@ namespace WindowsFormsApp4
         {
             if (e.Button == MouseButtons.Left)
             {
-                ChangeSize();
+                _Resize();
             }
         }
 
@@ -77,7 +77,7 @@ namespace WindowsFormsApp4
         {
             if ((e.KeyData == Keys.F) || (e.Alt && e.KeyCode == Keys.Enter))
             {
-                ChangeSize();
+                _Resize();
             }
             if (e.KeyData == Keys.Escape)
             {
@@ -85,23 +85,26 @@ namespace WindowsFormsApp4
             }
         }
 
-        private void ChangeSize()
+        private void ChangeSize(Point location, Size size, bool showCursor)
+        {
+            Location = location;
+            Size = size;
+            NativeMethods.ShowCursor(showCursor);
+        }
+
+        private void _Resize()
         {
             if (!isFullSize)
             {
-                isFullSize = true;
                 oldLocation = Location;
-                Location = new Point(0, 0);
-                Size = fullSize;
-                NativeMethods.ShowCursor(false);
+                ChangeSize(new Point(0, 0), fullSize, false);
             }
             else
             {
-                isFullSize = false;
-                Location = oldLocation;
-                Size = normalSize;
-                NativeMethods.ShowCursor(true);
+                ChangeSize(oldLocation, normalSize, true);
             }
+
+            isFullSize = !isFullSize;
 
             pictureBox1.Image?.Dispose();
             graphics?.Dispose();
@@ -115,7 +118,7 @@ namespace WindowsFormsApp4
             int alpha = ch.GetAlpha();
             if (alpha > 0)
             {
-                Color color = Color.SpringGreen;
+                Color color = (alpha > 240) ? Color.FromArgb(245, 245, 245) : Color.SpringGreen;
                 using (SolidBrush brush = new SolidBrush(Color.FromArgb(alpha, color)))
                 {
                     graphics.DrawString($"{ch.Ch}", Font, brush, ch.X, ch.Y);
@@ -127,12 +130,12 @@ namespace WindowsFormsApp4
         {
             MChar[] cline = new MChar[Height / charSize];
             int dSize = 2 * charSize;
-            int x = dSize * rnd.Next(Width / dSize);
+            int x = rnd.Next(Width / dSize) * dSize;
             int y = rnd.Next(-Height, 0);
 
             for (int i = 0; i < cline.Length; i++)
             {
-                char ch = katakana[rnd.Next(katakana.Length)];
+                char ch = katakana.Choise();
                 cline[i] = new MChar(ch, x, y + i * (charSize + 4), i * delay);
             }
 
@@ -145,13 +148,13 @@ namespace WindowsFormsApp4
 
             for (int x = 0; x < allLines.Count; x++)
             {
-                for (int y = 0; y < allLines[x].Length; y++)
+                foreach (MChar ch in allLines[x])
                 {
-                    Draw(allLines[x][y]);
-                    allLines[x][y].Tick();
+                    Draw(ch);
+                    ch.Tick();
                 }
 
-                if (allLines[x].Last().IsUsed())
+                if (allLines[x].Last().WasUsed())
                 {
                     allLines[x] = InitLine();
                 }
